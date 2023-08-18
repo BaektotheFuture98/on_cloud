@@ -1,0 +1,4 @@
+kafka-python
+Pillow==9.5.0
+easyocr
+numpy
