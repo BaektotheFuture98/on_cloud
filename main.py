@@ -1,15 +1,17 @@
 from kafka import KafkaConsumer, KafkaProducer
 from PIL import Image
 from io import BytesIO
+import os
 import easyocr
 import json
 import numpy as np
+import papago as pg
 
-reader = easyocr.Reader(['en'])
+reader = easyocr.Reader(['en','ko'])
 
 consumer = KafkaConsumer('pro3',
                          bootstrap_servers = ['localhost:9092'],
-                         auto_offset_reset = 'earliest'
+                         auto_offset_reset = 'latest'
                          )
 
 producer = KafkaProducer(acks=0,
@@ -22,16 +24,24 @@ def on_send_success(record_metadata) :
 def on_send_error(e):
     print("메시지 전송 실패:", e)
 
-def process_message(message) : 
-    result = reader.readtext(message)
-    return result
-
 def switch_json(message) : 
-    dic = {}
-    for a, b, c in message : 
-        dic[b] = a
-    json_data = json.dumps(dic, cls = NpEncoder)
-    return json_data
+    dic_ko = {}
+    dic_en = {}
+    dic_jp = {}
+    for a, b, c in message :
+        print(f"type : {type(b)}, text : {b}")
+        # 한국어, 영어, 일본어 번역
+        result_jp = pg.get_translate(b, 'ja')
+        result_en = pg.get_translate(b, 'en')
+        result_ko = pg.get_translate(b, 'ko')
+        dic_jp[result_jp] = a
+        dic_en[result_en] = a
+        dic_ko[result_ko] = a
+
+    json_data_ko = json.dumps(dic_ko, cls=NpEncoder)
+    json_data_en = json.dumps(dic_en, cls=NpEncoder)
+    json_data_jp = json.dumps(dic_jp, cls=NpEncoder)
+    return json_data_ko, json_data_en, json_data_jp
 
 class NpEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -39,24 +49,36 @@ class NpEncoder(json.JSONEncoder):
             return int(obj)
         if isinstance(obj, np.floating):
             return float(obj)
-        if isinstance(obj, (np.ndarray)):
+        if isinstance(obj, np.ndarray):
             return obj.tolist()
         return super(NpEncoder, self).default(obj)
     
 def processincomsumer(message) : 
     img = BytesIO(message)
     img= Image.open(img).convert("RGB")
-    img.save(f"pro-{message[:3]}.jpg")
-    result = process_message(f"/Users/seonminbaek/practice/pro-{message[:3]}.jpg")
-    result = switch_json(result)
-    producer.send('cons3', result.encode('utf-8')).add_callback(on_send_success).add_errback(on_send_error)
+    img.save(f"pro.jpg")
+    
+    # 바운딩 박스, 텍스트, 임계값
+    result = reader.readtext(f"pro.jpg")
+    
+    os.remove(f"pro.jpg")
+    
+    print(result)
+
+    re_ko, re_en, re_jp = switch_json(result)
+    print(f"""re_ko : {re_ko}""")
+    print(f"""re_en : {re_en}""")
+    print(f"""re_jp : {re_jp}""")
+    producer.send('korean', re_ko.encode('utf-8')).add_callback(on_send_success).add_errback(on_send_error)
+    producer.send('english', re_en.encode('utf-8')).add_callback(on_send_success).add_errback(on_send_error)
+    producer.send('japan', re_jp.encode('utf-8')).add_callback(on_send_success).add_errback(on_send_error)
 
 
 if __name__ == '__main__' : 
-    for message in consumer : 
-        try : 
+    for message in consumer :
+        try :
             processincomsumer(message.value)
-            
-        except Exception as e: 
+
+        except Exception as e:
             print(f"Error processing message: {e}")
-        
+
