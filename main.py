@@ -9,7 +9,7 @@ import papago as pg
 
 reader = easyocr.Reader(['en','ko'])
 
-consumer = KafkaConsumer('pro3',
+consumer = KafkaConsumer('cluster',
                          bootstrap_servers = ['localhost:9092'],
                          auto_offset_reset = 'latest'
                          )
