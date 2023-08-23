@@ -2,12 +2,12 @@ from kafka import KafkaConsumer, KafkaProducer
 from PIL import Image
 from io import BytesIO
 import os
-import easyocr
+from EasyOCR.easyocr import easyocr
 import json
 import numpy as np
 import papago as pg
 
-reader = easyocr.Reader(['en','ko'])
+reader = easyocr.Reader(lang_list = ['ko'], recog_network = 'trocr', gpu=True)
 
 consumer = KafkaConsumer('cluster',
                          bootstrap_servers = ['localhost:9092'],
@@ -53,15 +53,16 @@ class NpEncoder(json.JSONEncoder):
             return obj.tolist()
         return super(NpEncoder, self).default(obj)
     
-def processincomsumer(message) : 
+def processincomsumer(message):
+    global reader
     img = BytesIO(message)
-    img= Image.open(img).convert("RGB")
-    img.save(f"pro.jpg")
+    #img= Image.open(img).convert("RGB")
+    #img.save(f"pro.jpg")
     
     # 바운딩 박스, 텍스트, 임계값
-    result = reader.readtext(f"pro.jpg")
-    
-    os.remove(f"pro.jpg")
+    #result = reader.readtext(f"pro.jpg")
+    result = reader.readtext(img)
+    #os.remove(f"pro.jpg")
     
     print(result)
 

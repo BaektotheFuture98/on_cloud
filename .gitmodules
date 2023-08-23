@@ -1,0 +1,3 @@
+[submodule "EasyOCR"]
+	path = EasyOCR
+	url = git@github.com:yumjunstar/EasyOCR.git
