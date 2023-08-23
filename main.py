@@ -6,12 +6,12 @@ from EasyOCR.easyocr import easyocr
 import json
 import numpy as np
 import papago as pg
-
+import cv2
 reader = easyocr.Reader(lang_list = ['ko'], recog_network = 'trocr', gpu=True)
 
 consumer = KafkaConsumer('cluster',
                          bootstrap_servers = ['localhost:9092'],
-                         auto_offset_reset = 'latest'
+                         auto_offset_reset = 'earliest'
                          )
 
 producer = KafkaProducer(acks=0,
@@ -56,7 +56,9 @@ class NpEncoder(json.JSONEncoder):
 def processincomsumer(message):
     global reader
     img = BytesIO(message)
-    #img= Image.open(img).convert("RGB")
+    img= np.array(Image.open(img))
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    #print (type(img))
     #img.save(f"pro.jpg")
     
     # 바운딩 박스, 텍스트, 임계값
