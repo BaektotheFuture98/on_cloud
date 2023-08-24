@@ -9,14 +9,14 @@ import papago as pg
 import cv2
 reader = easyocr.Reader(lang_list = ['ko'], recog_network = 'trocr', gpu=True)
 
-consumer = KafkaConsumer('cluster',
+consumer = KafkaConsumer('pro3',
                          bootstrap_servers = ['localhost:9092'],
                          auto_offset_reset = 'earliest'
                          )
 
-producer = KafkaProducer(acks=0,
-                         compression_type='gzip',
-                         bootstrap_servers=['localhost:9092'])
+producer = KafkaProducer(acks='all',
+                         compression_type='gzip', api_version=(0,11,5),
+                         bootstrap_servers=['52.91.126.82:9092','34.232.53.143:9092','100.24.240.6:9092'])
 
 def on_send_success(record_metadata) : 
     print("메시지 전송 성공. Topic:", record_metadata.topic, "Partition:", record_metadata.partition, "Offset:", record_metadata.offset)
