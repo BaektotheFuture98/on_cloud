@@ -15,7 +15,7 @@ consumer = KafkaConsumer('pro3',
                          )
 
 producer = KafkaProducer(acks='all',
-                         compression_type='gzip', api_version=(0,11,5),
+                         compression_type='gzip',
                          bootstrap_servers=['52.91.126.82:9092','34.232.53.143:9092','100.24.240.6:9092'])
 
 def on_send_success(record_metadata) : 
@@ -63,7 +63,7 @@ def processincomsumer(message):
     
     # 바운딩 박스, 텍스트, 임계값
     #result = reader.readtext(f"pro.jpg")
-    result = reader.readtext(img, batch_size = 8192, output_format='json_specific_and_relative_pos')
+    result = reader.readtext(img, batch_size = 10, output_format='json_specific_and_relative_pos')
     #os.remove(f"pro.jpg")
     
     print(result)
