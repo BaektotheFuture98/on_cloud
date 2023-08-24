@@ -61,7 +61,7 @@ def processincomsumer(message):
     
     # 바운딩 박스, 텍스트, 임계값
     #result = reader.readtext(f"pro.jpg")
-    result = reader.readtext(img)
+    result = reader.readtext(img, batch_size = 8192, output_format='json_specific_and_relative_pos')
     #os.remove(f"pro.jpg")
     
     print(result)
