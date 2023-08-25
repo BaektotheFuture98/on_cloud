@@ -13,8 +13,13 @@ def get_translate(text, target):
     # print(f"In get_translate -> type : {type(text)}, text : {text}")
     # print(f"In get_translate -> type : {type(target)}, target : {target}")
     lang = get_lang(text)
-    #print(type(lang)) 같음
-    if lang != target :
+    print ('lang', lang)
+    print(type(lang))
+    if lang == 'unk': # 모르는 경우
+        return text
+    elif lang == target: # 같은 경우
+        return text
+    else: # 이외에 처리
         encText = urllib.parse.quote(text)
 
         data = f"source={str(lang)}&target={str(target)}&text=" + encText
@@ -30,9 +35,6 @@ def get_translate(text, target):
             return response_body['message']['result']['translatedText']
         else:
             print("Error Code:" + rescode)
-    else :
-        # print(f'same to same : {e}')
-        return text
 
 def get_lang(text):
     encQuery = urllib.parse.quote(text)

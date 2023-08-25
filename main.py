@@ -7,11 +7,14 @@ import json
 import numpy as np
 import papago as pg
 import cv2
+import base64
+import traceback
+
 reader = easyocr.Reader(lang_list = ['ko'], recog_network = 'trocr', gpu=True)
 
-consumer = KafkaConsumer('pro3',
-                         bootstrap_servers = ['localhost:9092'],
-                         auto_offset_reset = 'earliest'
+consumer = KafkaConsumer('topic',
+                         bootstrap_servers = ['52.91.126.82:9092','34.232.53.143:9092','100.24.240.6:9092'],
+                         auto_offset_reset = 'latest'
                          )
 
 producer = KafkaProducer(acks='all',
@@ -24,23 +27,48 @@ def on_send_success(record_metadata) :
 def on_send_error(e):
     print("메시지 전송 실패:", e)
 
-def switch_json(message) : 
-    dic_ko = {}
-    dic_en = {}
-    dic_jp = {}
-    for a, b, c in message :
-        print(f"type : {type(b)}, text : {b}")
-        # 한국어, 영어, 일본어 번역
-        result_jp = pg.get_translate(b, 'ja')
-        result_en = pg.get_translate(b, 'en')
-        result_ko = pg.get_translate(b, 'ko')
-        dic_jp[result_jp] = a
-        dic_en[result_en] = a
-        dic_ko[result_ko] = a
+def switch_json(message):
+    ko_message = message[:]
+    en_message = message[:]
+    jp_message = message[:]
+    
+    for i, sentence in enumerate(message):
+        data = json.loads(sentence)
+        bounding_box_pos = data['boxes']
+        text = data['text']
+        confident = data['confident']
+        background_color = data['background_color']
+        text_color = data['text_color']
+        
+        print(f"type : {type(text)}, text : {text}")
+        result_jp = pg.get_translate(text, 'ja')
+        result_en = pg.get_translate(text, 'en')
+        result_ko = pg.get_translate(text, 'ko')
+        data['text'] = result_ko
+        ko_message[i] = json.dumps(data)
+        
+        data['text'] = result_en
+        en_message[i] = json.dumps(data)
+        
+        data['text'] = result_jp
+        jp_message[i] = json.dumps(data)
+    
+    # for a, b, c in message :
+    #     print(f"type : {type(b)}, text : {b}")
+    #     # 한국어, 영어, 일본어 번역
+    #     result_jp = pg.get_translate(b, 'ja')
+    #     result_en = pg.get_translate(b, 'en')
+    #     result_ko = pg.get_translate(b, 'ko')
+    #     dic_jp[result_jp] = a
+    #     dic_en[result_en] = a
+    #     dic_ko[result_ko] = a
 
-    json_data_ko = json.dumps(dic_ko, cls=NpEncoder)
-    json_data_en = json.dumps(dic_en, cls=NpEncoder)
-    json_data_jp = json.dumps(dic_jp, cls=NpEncoder)
+
+    json_data_ko = json.dumps(ko_message, cls=NpEncoder)
+    json_data_en = json.dumps(en_message, cls=NpEncoder)
+    json_data_jp = json.dumps(jp_message, cls=NpEncoder)
+    print ('final Result')
+    print (json_data_en, json_data_ko, json_data_jp)
     return json_data_ko, json_data_en, json_data_jp
 
 class NpEncoder(json.JSONEncoder):
@@ -55,9 +83,11 @@ class NpEncoder(json.JSONEncoder):
     
 def processincomsumer(message):
     global reader
+    message = base64.b64decode(message)
     img = BytesIO(message)
     img= np.array(Image.open(img))
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    print (type(img))
     #print (type(img))
     #img.save(f"pro.jpg")
     
@@ -79,9 +109,10 @@ def processincomsumer(message):
 
 if __name__ == '__main__' : 
     for message in consumer :
+        
         try :
             processincomsumer(message.value)
-
         except Exception as e:
-            print(f"Error processing message: {e}")
+            print (f"Error : {e}")
+            print (traceback.format_exc())
 
