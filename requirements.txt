@@ -3,4 +3,3 @@ Pillow==9.5.0
 easyocr
 numpy
 transformers
-client_id_secret

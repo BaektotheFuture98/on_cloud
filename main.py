@@ -9,18 +9,19 @@ import papago as pg
 import cv2
 import base64
 import traceback
+import client_id_secret as sc
 
 reader = easyocr.Reader(lang_list = ['ko'], recog_network = 'trocr', gpu=True)
 
 consumer = KafkaConsumer('topic',
-                         bootstrap_servers = ['52.91.126.82:9092','34.232.53.143:9092','100.24.240.6:9092'],
+                         bootstrap_servers = sc.KafkaConsumer_bootstrap_servers,
                          auto_offset_reset = 'latest'
                          )
 
 producer = KafkaProducer(acks='all',
                          compression_type='gzip',
-                         bootstrap_servers=['52.91.126.82:9092','34.232.53.143:9092','100.24.240.6:9092'])
-
+                         bootstrap_servers= sc.KafkaProducer_bootstrap_servers)
+print ('Model is Ready')
 def on_send_success(record_metadata) : 
     print("메시지 전송 성공. Topic:", record_metadata.topic, "Partition:", record_metadata.partition, "Offset:", record_metadata.offset)
 
@@ -64,9 +65,9 @@ def switch_json(message):
     #     dic_ko[result_ko] = a
 
 
-    json_data_ko = json.dumps(ko_message, cls=NpEncoder)
-    json_data_en = json.dumps(en_message, cls=NpEncoder)
-    json_data_jp = json.dumps(jp_message, cls=NpEncoder)
+    json_data_ko = json.dumps(ko_message, cls=NpEncoder, indent=4)
+    json_data_en = json.dumps(en_message, cls=NpEncoder, indent=4)
+    json_data_jp = json.dumps(jp_message, cls=NpEncoder, indent=4)
     print ('final Result')
     print (json_data_en, json_data_ko, json_data_jp)
     return json_data_ko, json_data_en, json_data_jp
@@ -109,9 +110,11 @@ def processincomsumer(message):
 
 if __name__ == '__main__' : 
     for message in consumer :
-        
         try :
             processincomsumer(message.value)
+        except KeyboardInterrupt as e:
+            print (e)
+            break
         except Exception as e:
             print (f"Error : {e}")
             print (traceback.format_exc())
