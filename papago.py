@@ -2,7 +2,7 @@ import json
 import urllib.request
 import urllib.error
 import client_id_secret as sc 
-
+import aiohttp
 # client_id_secret파일 .gitignore로 깃허브에 안올림 -> 네이버 API id, password
 client_id = sc.client_id
 client_secret = sc.client_secret

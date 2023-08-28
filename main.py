@@ -11,7 +11,7 @@ import base64
 import traceback
 import client_id_secret as sc
 
-reader = easyocr.Reader(lang_list = ['ko', 'en'], gpu=True) # recog_network = 'trocr')
+reader = easyocr.Reader(lang_list = ['ko', 'en'], gpu=True, recog_network = 'trocr')
 
 consumer = KafkaConsumer('topic',
                          bootstrap_servers = sc.KafkaConsumer_bootstrap_servers,
@@ -79,30 +79,9 @@ def processincomsumer(message):
     img = BytesIO(message)
     img= np.array(Image.open(img))
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
- #   print (type(img))
-    #print (type(img))
-    #img.save(f"pro.jpg")
-    
-    # 바운딩 박스, 텍스트, 임계값
-    #result = reader.readtext(f"pro.jpg")
-    result = None
     if img is not None:
-        result = reader.readtext(img, decoder = 'beamsearch', beamWidth=5,width_ths=2, paragraph= False, batch_size = 10, output_format='json_specific_and_relative_pos')
+        result = reader.readtext(img, decoder = 'beamsearch', beamWidth=5, width_ths=2, paragraph= False, batch_size = 10, output_format='json_specific_and_relative_pos')
         print (result)
-        
-    #os.remove(f"pro.jpg")
-    
-  #  print(result)
-    print(type(message))
-    img = base64.b64decode(message)
-    # 바운딩 박스, 텍스트, 임계값
-    with open('pro.png', 'bw') as f :
-        f.write(img)
-    result = reader.readtext(f"pro.png")
-
-    os.remove(f"pro.png")
-
-    print(result)
 
     re_ko, re_en, re_jp = switch_json(result)
     print(f"""re_ko : {re_ko}""")
