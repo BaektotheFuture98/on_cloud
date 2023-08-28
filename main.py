@@ -11,7 +11,7 @@ import base64
 import traceback
 import client_id_secret as sc
 
-reader = easyocr.Reader(lang_list = ['ko'], recog_network = 'trocr', gpu=True)
+reader = easyocr.Reader(lang_list = ['ko', 'en'], gpu=True) # recog_network = 'trocr')
 
 consumer = KafkaConsumer('topic',
                          bootstrap_servers = sc.KafkaConsumer_bootstrap_servers,
@@ -68,7 +68,7 @@ def switch_json(message):
     json_data_ko = json.dumps(ko_message, cls=NpEncoder, indent=4)
     json_data_en = json.dumps(en_message, cls=NpEncoder, indent=4)
     json_data_jp = json.dumps(jp_message, cls=NpEncoder, indent=4)
-    print ('final Result')
+#    print ('final Result')
     print (json_data_en, json_data_ko, json_data_jp)
     return json_data_ko, json_data_en, json_data_jp
 
@@ -88,16 +88,20 @@ def processincomsumer(message):
     img = BytesIO(message)
     img= np.array(Image.open(img))
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    print (type(img))
+ #   print (type(img))
     #print (type(img))
     #img.save(f"pro.jpg")
     
     # 바운딩 박스, 텍스트, 임계값
     #result = reader.readtext(f"pro.jpg")
-    result = reader.readtext(img, batch_size = 10, output_format='json_specific_and_relative_pos')
+    result = None
+    if img is not None:
+        result = reader.readtext(img, decoder = 'beamsearch', beamWidth=5,width_ths=2, paragraph= False, batch_size = 10, output_format='json_specific_and_relative_pos')
+        print (result)
+        
     #os.remove(f"pro.jpg")
     
-    print(result)
+  #  print(result)
 
     re_ko, re_en, re_jp = switch_json(result)
     print(f"""re_ko : {re_ko}""")
