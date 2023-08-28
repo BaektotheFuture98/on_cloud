@@ -6,7 +6,6 @@ import easyocr
 import json
 import numpy as np
 import papago as pg
-<<<<<<< HEAD
 import cv2
 import base64
 import traceback
@@ -16,33 +15,13 @@ reader = easyocr.Reader(lang_list = ['ko', 'en'], gpu=True) # recog_network = 't
 
 consumer = KafkaConsumer('topic',
                          bootstrap_servers = sc.KafkaConsumer_bootstrap_servers,
-=======
-import base64
-
-#reader = easyocr.Reader(lang_list = ['ko','en','ja'], recog_network = 'trocr', gpu=True)
-reader = easyocr.Reader(['en','ko'])
-
-consumer = KafkaConsumer('test2',
-                         bootstrap_servers = ['localhost:9092'],
->>>>>>> 0ab1d24 (SeonMin's modify)
                          auto_offset_reset = 'latest'
                          )
 
 producer = KafkaProducer(acks='all',
-<<<<<<< HEAD
                          compression_type='gzip',
-<<<<<<< HEAD
                          bootstrap_servers= sc.KafkaProducer_bootstrap_servers)
 print ('Model is Ready')
-=======
-                         bootstrap_servers=['localhost:9092'])
-=======
-                         compression_type = 'gzip',
-                         bootstrap_servers = ['localhost:9092'])
->>>>>>> 81a1100 (d)
-                        #  bootstrap_servers=['52.91.126.82:9092','34.232.53.143:9092','100.24.240.6:9092'])
-
->>>>>>> 0ab1d24 (SeonMin's modify)
 def on_send_success(record_metadata) : 
     print("메시지 전송 성공. Topic:", record_metadata.topic, "Partition:", record_metadata.partition, "Offset:", record_metadata.offset)
 
@@ -104,7 +83,6 @@ class NpEncoder(json.JSONEncoder):
         return super(NpEncoder, self).default(obj)
     
 def processincomsumer(message):
-<<<<<<< HEAD
     global reader
     message = base64.b64decode(message)
     img = BytesIO(message)
@@ -124,7 +102,6 @@ def processincomsumer(message):
     #os.remove(f"pro.jpg")
     
   #  print(result)
-=======
     print(type(message))
     img = base64.b64decode(message)
     # 바운딩 박스, 텍스트, 임계값
@@ -135,7 +112,6 @@ def processincomsumer(message):
     os.remove(f"pro.png")
 
     print(result)
->>>>>>> 0ab1d24 (SeonMin's modify)
 
     re_ko, re_en, re_jp = switch_json(result)
     print(f"""re_ko : {re_ko}""")
