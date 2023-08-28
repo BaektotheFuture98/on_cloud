@@ -81,7 +81,7 @@ def processincomsumer(message):
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     if img is not None:
         result = reader.readtext(img, decoder = 'beamsearch', beamWidth=5, width_ths=2, paragraph= False, batch_size = 10, output_format='json_specific_and_relative_pos')
-        
+
     re_ko, re_en, re_jp = switch_json(result)
     print(f"""re_ko : {re_ko}""")
     print(f"""re_en : {re_en}""")
