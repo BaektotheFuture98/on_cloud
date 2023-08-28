@@ -2,7 +2,7 @@ from kafka import KafkaConsumer, KafkaProducer
 from PIL import Image
 from io import BytesIO
 import os
-import easyocr
+from EasyOCR.easyocr import easyocr
 import json
 import numpy as np
 import papago as pg
@@ -83,17 +83,20 @@ def processincomsumer(message):
         result = reader.readtext(img, decoder = 'beamsearch', beamWidth=5, width_ths=2, paragraph= False, batch_size = 10, output_format='json_specific_and_relative_pos')
         print (result)
 
-    re_ko, re_en, re_jp = switch_json(result)
-    print(f"""re_ko : {re_ko}""")
-    print(f"""re_en : {re_en}""")
-    print(f"""re_jp : {re_jp}""")
-    producer.send('korean', re_ko.encode('utf-8')).add_callback(on_send_success).add_errback(on_send_error)
-    producer.send('english', re_en.encode('utf-8')).add_callback(on_send_success).add_errback(on_send_error)
-    producer.send('japan', re_jp.encode('utf-8')).add_callback(on_send_success).add_errback(on_send_error)
+        re_ko, re_en, re_jp = switch_json(result)
+        print(f"""re_ko : {re_ko}""")
+        print(f"""re_en : {re_en}""")
+        print(f"""re_jp : {re_jp}""")
+        producer.send('korean', re_ko.encode('utf-8')).add_callback(on_send_success).add_errback(on_send_error)
+        producer.send('english', re_en.encode('utf-8')).add_callback(on_send_success).add_errback(on_send_error)
+        producer.send('japan', re_jp.encode('utf-8')).add_callback(on_send_success).add_errback(on_send_error)
 
 
 
 if __name__ == '__main__' : 
+    #img = cv2.imread('test.jpg', cv2.COLOR_BGR2RGB)
+    #result = reader.readtext(img, output_format='json_specific_and_relative_pos')
+    #print (result)
     for message in consumer :
         try :
             processincomsumer(message.value)
