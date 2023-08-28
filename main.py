@@ -29,12 +29,17 @@ consumer = KafkaConsumer('test2',
                          )
 
 producer = KafkaProducer(acks='all',
+<<<<<<< HEAD
                          compression_type='gzip',
 <<<<<<< HEAD
                          bootstrap_servers= sc.KafkaProducer_bootstrap_servers)
 print ('Model is Ready')
 =======
                          bootstrap_servers=['localhost:9092'])
+=======
+                         compression_type = 'gzip',
+                         bootstrap_servers = ['localhost:9092'])
+>>>>>>> 81a1100 (d)
                         #  bootstrap_servers=['52.91.126.82:9092','34.232.53.143:9092','100.24.240.6:9092'])
 
 >>>>>>> 0ab1d24 (SeonMin's modify)
@@ -121,10 +126,6 @@ def processincomsumer(message):
   #  print(result)
 =======
     print(type(message))
-#    # global reader
-#     img = BytesIO(message)
-#     img = Image.open(img).convert("RGB")
-#     img.save(f"pro.jpg")
     img = base64.b64decode(message)
     # 바운딩 박스, 텍스트, 임계값
     with open('pro.png', 'bw') as f :
