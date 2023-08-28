@@ -54,15 +54,6 @@ def switch_json(message):
         data['text'] = result_jp
         jp_message[i] = json.dumps(data)
     
-    # for a, b, c in message :
-    #     print(f"type : {type(b)}, text : {b}")
-    #     # 한국어, 영어, 일본어 번역
-    #     result_jp = pg.get_translate(b, 'ja')
-    #     result_en = pg.get_translate(b, 'en')
-    #     result_ko = pg.get_translate(b, 'ko')
-    #     dic_jp[result_jp] = a
-    #     dic_en[result_en] = a
-    #     dic_ko[result_ko] = a
 
 
     json_data_ko = json.dumps(ko_message, cls=NpEncoder, indent=4)
