@@ -13,7 +13,7 @@ import client_id_secret as sc
 
 reader = easyocr.Reader(lang_list = ['ko', 'en'], gpu=True, recog_network = 'trocr')
 
-consumer = KafkaConsumer('topic',
+consumer = KafkaConsumer('cluster',
                          bootstrap_servers = sc.KafkaConsumer_bootstrap_servers,
                          auto_offset_reset = 'latest'
                          )
@@ -80,16 +80,16 @@ def processincomsumer(message):
     img= np.array(Image.open(img))
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     if img is not None:
-        result = reader.readtext(img, decoder = 'beamsearch', beamWidth=5, width_ths=2, paragraph= False, batch_size = 10, output_format='json_specific_and_relative_pos')
+        result = reader.readtext(img, decoder = 'beamsearch', beamWidth=5, width_ths= 10, paragraph= False, batch_size = 10, output_format='json_specific_and_relative_pos')
         print (result)
 
         re_ko, re_en, re_jp = switch_json(result)
         print(f"""re_ko : {re_ko}""")
         print(f"""re_en : {re_en}""")
         print(f"""re_jp : {re_jp}""")
-        producer.send('korean', re_ko.encode('utf-8')).add_callback(on_send_success).add_errback(on_send_error)
-        producer.send('english', re_en.encode('utf-8')).add_callback(on_send_success).add_errback(on_send_error)
-        producer.send('japan', re_jp.encode('utf-8')).add_callback(on_send_success).add_errback(on_send_error)
+        producer.send('cluster-korean', re_ko.encode('utf-8')).add_callback(on_send_success).add_errback(on_send_error)
+        producer.send('cluster-english', re_en.encode('utf-8')).add_callback(on_send_success).add_errback(on_send_error)
+        producer.send('cluster-japan', re_jp.encode('utf-8')).add_callback(on_send_success).add_errback(on_send_error)
 
 
 

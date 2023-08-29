@@ -22,13 +22,14 @@ def get_papago_response(url, id, secret, data):
                 continue
             else:
                 print(f"Error Code: {e.code}")
+                return None
         else:
             rescode = response.getcode()
             if rescode == 200:
                 return response
             else:
                 print("Error Code:" + rescode)
-                return response
+                return None
 
 def get_translate(text, target):
     # print(f"In get_translate -> type : {type(text)}, text : {text}")
@@ -45,9 +46,12 @@ def get_translate(text, target):
         data = f"source={str(lang)}&target={str(target)}&text=" + encText
         url = "https://openapi.naver.com/v1/papago/n2mt"
         response = get_papago_response(url, client_id, client_secret, data)
-        response_body = response.read()
-        response_body = json.loads(response_body.decode('utf-8'))
-        return response_body['message']['result']['translatedText']
+        if response is not None:
+            response_body = response.read()
+            response_body = json.loads(response_body.decode('utf-8'))
+            return response_body['message']['result']['translatedText']
+        else:
+            return text
 
 
 def get_lang(text):
@@ -55,7 +59,10 @@ def get_lang(text):
     data = "query=" + encQuery
     url = "https://openapi.naver.com/v1/papago/detectLangs"
     response = get_papago_response(url, client_id, client_secret, data)
-    response_body = response.read()
-    response_body =json.loads(response_body.decode('utf-8'))
-    return response_body['langCode']
+    if response is not None:
+        response_body = response.read()
+        response_body =json.loads(response_body.decode('utf-8'))
+        return response_body['langCode']
+    else:
+        return 'unk'
 
