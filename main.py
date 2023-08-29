@@ -11,9 +11,9 @@ import base64
 import traceback
 import client_id_secret as sc
 
-reader = easyocr.Reader(lang_list = ['ko', 'en'], gpu=True) # recog_network = 'trocr')
+reader = easyocr.Reader(lang_list = ['ko', 'en'], gpu=True, recog_network = 'trocr')
 
-consumer = KafkaConsumer('topic',
+consumer = KafkaConsumer('cluster',
                          bootstrap_servers = sc.KafkaConsumer_bootstrap_servers,
                          auto_offset_reset = 'latest'
                          )
@@ -55,7 +55,6 @@ def switch_json(message):
         jp_message[i] = json.dumps(data)
 
 
-
     json_data_ko = json.dumps(ko_message, cls=NpEncoder, indent=4)
     json_data_en = json.dumps(en_message, cls=NpEncoder, indent=4)
     json_data_jp = json.dumps(jp_message, cls=NpEncoder, indent=4)
@@ -79,31 +78,24 @@ def processincomsumer(message):
     img = BytesIO(message)
     img= np.array(Image.open(img))
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
- #   print (type(img))
-    #print (type(img))
-    #img.save(f"pro.jpg")
-    
-    # 바운딩 박스, 텍스트, 임계값
-    #result = reader.readtext(f"pro.jpg")
-    result = None
     if img is not None:
-        result = reader.readtext(img, decoder = 'beamsearch', beamWidth=5,width_ths=2, paragraph= False, batch_size = 10, output_format='json_specific_and_relative_pos')
+        result = reader.readtext(img, decoder = 'beamsearch', beamWidth=5, width_ths= 10, paragraph= False, batch_size = 10, output_format='json_specific_and_relative_pos')
         print (result)
-        
-    #os.remove(f"pro.jpg")
-    
-  #  print(result)
 
-    re_ko, re_en, re_jp = switch_json(result)
-    print(f"""re_ko : {re_ko}""")
-    print(f"""re_en : {re_en}""")
-    print(f"""re_jp : {re_jp}""")
-    producer.send('korean', re_ko.encode('utf-8')).add_callback(on_send_success).add_errback(on_send_error)
-    producer.send('english', re_en.encode('utf-8')).add_callback(on_send_success).add_errback(on_send_error)
-    producer.send('japan', re_jp.encode('utf-8')).add_callback(on_send_success).add_errback(on_send_error)
+        re_ko, re_en, re_jp = switch_json(result)
+        print(f"""re_ko : {re_ko}""")
+        print(f"""re_en : {re_en}""")
+        print(f"""re_jp : {re_jp}""")
+        producer.send('cluster-korean', re_ko.encode('utf-8')).add_callback(on_send_success).add_errback(on_send_error)
+        producer.send('cluster-english', re_en.encode('utf-8')).add_callback(on_send_success).add_errback(on_send_error)
+        producer.send('cluster-japan', re_jp.encode('utf-8')).add_callback(on_send_success).add_errback(on_send_error)
+
 
 
 if __name__ == '__main__' : 
+    #img = cv2.imread('test.jpg', cv2.COLOR_BGR2RGB)
+    #result = reader.readtext(img, output_format='json_specific_and_relative_pos')
+    #print (result)
     for message in consumer :
         try :
             processincomsumer(message.value)
